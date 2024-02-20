@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #qrVideo {
+            width: 70%; /* Adjust the width as needed */
+            max-width: 100%;
+            order: 1; /* Move the video to the top */
+        }
+
+        #startScan, #stopScan {
+            order: 2; /* Move the buttons to the bottom */
+            margin-top: 10px; /* Add space between the video and buttons */
+        }
+    </style>
+</head>
+<body>
+    <button id="startScan">Open Camera</button>
+    <button id="stopScan" style="display: none;">Close Camera</button>
+    <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
+
+    <script src="jsQR.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startScanButton = document.getElementById('startScan');
+            const stopScanButton = document.getElementById('stopScan');
+            const qrVideo = document.getElementById('qrVideo');
+
+            let videoStream;
+            let continueScanning = false;
+
+            // Tambahkan event listener untuk tombol start dan stop
+            startScanButton.addEventListener('click', startScan);
+            stopScanButton.addEventListener('click', stopScan);
+
+            function startScan() {
+                // Minta akses ke kamera pengguna
+                navigator.mediaDevices.getUserMedia({
+                        video: true
+                    })
+                    .then((stream) => {
+                        // Simpan stream video dan atur sebagai sumber untuk elemen video
+                        videoStream = stream;
+                        qrVideo.srcObject = stream;
+
+                        // Ketika metadata video dimuat, putar video dan mulai pemindaian
+                        qrVideo.addEventListener('loadedmetadata', function () {
+                            stopScanButton.style.display = "";
+                            startScanButton.style.display = "none";
+
+                            qrVideo.play();
+                            continueScanning = true;
+                            scanQRCode();
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error accessing camera:', error);
+                    });
+            }
+
+            function stopScan() {
+                if (videoStream) {
+                    stopScanButton.style.display = "none";
+                    startScanButton.style.display = "";
+
+                    // Dapatkan semua trek video dan hentikan masing-masing
+                    const tracks = videoStream.getTracks();
+                    tracks.forEach(track => track.stop());
+                    videoStream = null;
+
+                    // Hentikan stream video pada elemen video
+                    qrVideo.srcObject = null;
+
+                    // Setel flag untuk menghentikan pemindaian
+                    continueScanning = false;
+                }
+            }
+
+            function scanQRCode() {
+                if (!continueScanning) {
+                    return;
+                }
+
+                // Buat elemen canvas untuk menggambar bingkai video
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = qrVideo.videoWidth;
+                canvas.height = qrVideo.videoHeight;
+
+                // Gambar bingkai video di atas canvas
+                context.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Gunakan perpustakaan pemindaian kode QR (jsQR) untuk mendekode kode QR
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                // Jika kode QR ditemukan, buka URL yang sesuai dan hentikan pemindaian
+                if (code) {
+                    window.open(code.data);
+                    stopScanButton.click();
+                }
+
+                // Lanjutkan pemindaian jika flag diatur
+                if (continueScanning) {
+                    requestAnimationFrame(scanQRCode);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
