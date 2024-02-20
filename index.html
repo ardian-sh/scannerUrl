@@ -68,9 +68,11 @@
                     if (positionCamera === 1) {
                         positionCamera = 0;
                         selectedCameraMode = frontCamera;
+                        cameraModeSelect.innerHTML = "Kamera Belakang";
                     } else {
                         positionCamera = 1;
                         selectedCameraMode = rearCamera;
+                        cameraModeSelect.innerHTML = "Kamera Depan";
                     }
 
                 }
