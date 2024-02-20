@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,20 +17,27 @@
         }
 
         #qrVideo {
-            width: 70%; /* Adjust the width as needed */
+            width: 70%;
+            /* Adjust the width as needed */
             max-width: 100%;
-            order: 1; /* Move the video to the top */
+            order: 1;
+            /* Move the video to the top */
         }
 
-        #startScan, #stopScan, #changeCamera {
-            order: 2; /* Move the buttons to the bottom */
-            margin-top: 10px; /* Add space between the video and buttons */
+        #startScan,
+        #stopScan,
+        #changeCamera {
+            order: 2;
+            /* Move the buttons to the bottom */
+            margin-top: 10px;
+            /* Add space between the video and buttons */
         }
     </style>
 </head>
+
 <body>
     <button id="startScan">Buka Kamera</button>
-    <button id="changeCamera" style="display: none;">Pilih Camera</button>
+    <button id="changeCamera" style="display: none;">Ubah Camera</button>
     <button id="stopScan" style="display: none;">Tutup Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
 
@@ -44,32 +52,40 @@
             let videoStream;
             let continueScanning = false;
 
-            let positionCamera = 1;//belakang 0 = belakang
+            let positionCamera = 1; //belakang 0 = depan
             let frontCamera = "user"; //depam
             let rearCamera = "environment"; // belakang
-            let selectedCameraMode = "";
+            let selectedCameraMode = frontCamera;
 
             // Tambahkan event listener untuk tombol start dan stop
             cameraModeSelect.addEventListener('click', startScan);
             startScanButton.addEventListener('click', startScan);
             stopScanButton.addEventListener('click', stopScan);
 
-            function startScan() {
-                if(positionCamera === 1){
-                    positionCamera = 0;
-                    selectedCameraMode = rearCamera;
-                    cameraModeSelect.innerHTML = "Kamera Depan";
-                }else{
-                    positionCamera = 1;
-                    selectedCameraMode = frontCamera;
-                    cameraModeSelect.innerHTML = "Kamera Belakang";
-                }
 
-                console.log(positionCamera);
+            function isMobile() {
+                const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+                return regex.test(navigator.userAgent);
+            }
+
+            function startScan() {
+                console.log(isMobile());
+                if (isMobile()) {
+                    if (positionCamera === 1) {
+                        positionCamera = 0;
+                        selectedCameraMode = frontCamera;
+                    } else {
+                        positionCamera = 1;
+                        selectedCameraMode = rearCamera;
+                    }
+
+                }
 
                 // Minta akses ke kamera pengguna
                 navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: selectedCameraMode }
+                        video: {
+                            facingMode: selectedCameraMode
+                        }
                     })
                     .then((stream) => {
                         // Simpan stream video dan atur sebagai sumber untuk elemen video
@@ -78,9 +94,14 @@
 
                         // Ketika metadata video dimuat, putar video dan mulai pemindaian
                         qrVideo.addEventListener('loadedmetadata', function () {
-                            cameraModeSelect.style.display = "";
                             stopScanButton.style.display = "";
                             startScanButton.style.display = "none";
+
+                            if (isMobile()) {
+                                cameraModeSelect.style.display = "";
+                            } else {
+                                cameraModeSelect.style.display = "none";
+                            }
 
                             qrVideo.play();
                             continueScanning = true;
@@ -143,4 +164,5 @@
         });
     </script>
 </body>
+
 </html>
