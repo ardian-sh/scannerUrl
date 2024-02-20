@@ -21,7 +21,7 @@
             order: 1; /* Move the video to the top */
         }
 
-        #startScan, #stopScan {
+        #startScan, #stopScan, #changeCamera {
             order: 2; /* Move the buttons to the bottom */
             margin-top: 10px; /* Add space between the video and buttons */
         }
@@ -29,12 +29,14 @@
 </head>
 <body>
     <button id="startScan">Open Camera</button>
+    <button id="changeCamera" style="display: none;">Change Camera</button>
     <button id="stopScan" style="display: none;">Close Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
 
     <script src="jsQR.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const cameraModeSelect = document.getElementById('changeCamera');
             const startScanButton = document.getElementById('startScan');
             const stopScanButton = document.getElementById('stopScan');
             const qrVideo = document.getElementById('qrVideo');
@@ -42,14 +44,30 @@
             let videoStream;
             let continueScanning = false;
 
+            let positionCamera = 1;//belakang 0 = belakang
+            let frontCamera = "user"; //depam
+            let rearCamera = "environment"; // belakang
+            let selectedCameraMode = "";
+
             // Tambahkan event listener untuk tombol start dan stop
+            cameraModeSelect.addEventListener('click', startScan);
             startScanButton.addEventListener('click', startScan);
             stopScanButton.addEventListener('click', stopScan);
 
             function startScan() {
+                if(positionCamera === 1){
+                    positionCamera = 0;
+                    selectedCameraMode = rearCamera;
+                }else{
+                    positionCamera = 1;
+                    selectedCameraMode = frontCamera;
+                }
+
+                console.log(positionCamera);
+
                 // Minta akses ke kamera pengguna
                 navigator.mediaDevices.getUserMedia({
-                        video: true
+                    video: { facingMode: selectedCameraMode }
                     })
                     .then((stream) => {
                         // Simpan stream video dan atur sebagai sumber untuk elemen video
@@ -58,6 +76,7 @@
 
                         // Ketika metadata video dimuat, putar video dan mulai pemindaian
                         qrVideo.addEventListener('loadedmetadata', function () {
+                            cameraModeSelect.style.display = "";
                             stopScanButton.style.display = "";
                             startScanButton.style.display = "none";
 
@@ -73,6 +92,7 @@
 
             function stopScan() {
                 if (videoStream) {
+                    cameraModeSelect.style.display = "none";
                     stopScanButton.style.display = "none";
                     startScanButton.style.display = "";
 
