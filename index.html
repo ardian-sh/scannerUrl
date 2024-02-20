@@ -28,9 +28,9 @@
     </style>
 </head>
 <body>
-    <button id="startScan">Open Camera</button>
-    <button id="changeCamera" style="display: none;">Change Camera</button>
-    <button id="stopScan" style="display: none;">Close Camera</button>
+    <button id="startScan">Buka Kamera</button>
+    <button id="changeCamera" style="display: none;">Pilih Camera</button>
+    <button id="stopScan" style="display: none;">Tutup Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
 
     <script src="jsQR.js"></script>
@@ -58,9 +58,11 @@
                 if(positionCamera === 1){
                     positionCamera = 0;
                     selectedCameraMode = rearCamera;
+                    cameraModeSelect.innerHTML = "Kamera Depan";
                 }else{
                     positionCamera = 1;
                     selectedCameraMode = frontCamera;
+                    cameraModeSelect.innerHTML = "Kamera Belakang";
                 }
 
                 console.log(positionCamera);
