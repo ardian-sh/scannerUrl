@@ -52,25 +52,19 @@
             let videoStream;
             let continueScanning = false;
 
-            let positionCamera = 1; //belakang 0 = depan
-            let frontCamera = "user"; //depam
-            let rearCamera = "environment"; // belakang
-            let selectedCameraMode = frontCamera;
+            let positionCamera = 1; //0 = depan, 1 = belakang
+            let frontCamera = "user"; //kamera depan
+            let rearCamera = "environment"; // kamera belakang
+            let selectedCameraMode = frontCamera;//default kamera depan
 
-            // Tambahkan event listener untuk tombol start dan stop
             cameraModeSelect.addEventListener('click', startScan);
             startScanButton.addEventListener('click', startScan);
             stopScanButton.addEventListener('click', stopScan);
 
-
-            function isMobile() {
-                const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-                return regex.test(navigator.userAgent);
-            }
+            const isMobile = isMobileDevice();
 
             function startScan() {
-                console.log(isMobile());
-                if (isMobile()) {
+                if (isMobile) {
                     if (positionCamera === 1) {
                         positionCamera = 0;
                         selectedCameraMode = frontCamera;
@@ -97,7 +91,7 @@
                             stopScanButton.style.display = "";
                             startScanButton.style.display = "none";
 
-                            if (isMobile()) {
+                            if (isMobile) {
                                 cameraModeSelect.style.display = "";
                             } else {
                                 cameraModeSelect.style.display = "none";
@@ -160,6 +154,11 @@
                 if (continueScanning) {
                     requestAnimationFrame(scanQRCode);
                 }
+            }
+
+            function isMobileDevice() {
+                const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+                return regex.test(navigator.userAgent);
             }
         });
     </script>
