@@ -40,6 +40,7 @@
     <button id="changeCamera" style="display: none;">Ubah Camera</button>
     <button id="stopScan" style="display: none;">Tutup Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
+    <a id="linkScan" href="#" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
     <script src="jsQR.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {           
@@ -48,6 +49,7 @@
             const startScanButton = document.getElementById('startScan');
             const stopScanButton = document.getElementById('stopScan');
             const qrVideo = document.getElementById('qrVideo');
+            const linkScan = document.getElementById('linkScan');
 
             let videoStream;
             let continueScanning = false;
@@ -150,9 +152,6 @@
                 if (code) {
                     if (code.data != null || code.data != "") {
                         stopScan();
-
-                        var linkScan = document.createElement("a");
-                        linkScan.target = "_blank";
                         linkScan.href = "https://jqueryui.com/button/"
                         linkScan.click();
                     }
