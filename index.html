@@ -40,7 +40,6 @@
     <button id="changeCamera" style="display: none;">Ubah Camera</button>
     <button id="stopScan" style="display: none;">Tutup Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
-    <a href="https://www.w3schools.com" target="_blank">Visit W3Schools</a>
 
     <script src="jsQR.js"></script>
     <script>
@@ -154,13 +153,10 @@
                         stopScan();
                         $('#myModal').modal('hide');
                         if (isSafari()) {
-                            var a = document.createElement('a');
+                            var a = window.document.createElement('a');
                             a.href = code.data;
                             a.target = '_blank';
-
-                            var clickEvent = document.createEvent('MouseEvent');
-                            clickEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                            a.dispatchEvent(clickEvent);
+                            a.click();
                         } else {
                             window.open(code.data);
                         }
