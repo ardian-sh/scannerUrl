@@ -40,10 +40,19 @@
     <button id="changeCamera" style="display: none;">Ubah Camera</button>
     <button id="stopScan" style="display: none;">Tutup Camera</button>
     <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
+    <p id="userAgents"></p>
 
     <script src="jsQR.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const p = document.getElementById("userAgents");
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.indexOf('safari') != -1) {
+                p.textContent = "safari"
+            } else {
+                p.textContent = "bukan"
+            }
+
             const cameraModeSelect = document.getElementById('changeCamera');
             const startScanButton = document.getElementById('startScan');
             const stopScanButton = document.getElementById('stopScan');
@@ -92,7 +101,6 @@
                         qrVideo.addEventListener('loadedmetadata', function () {
                             stopScanButton.style.display = "";
                             startScanButton.style.display = "none";
-
                             if (isMobile) {
                                 cameraModeSelect.style.display = "";
                             } else {
@@ -105,7 +113,8 @@
                         });
                     })
                     .catch((error) => {
-                        console.error('Error accessing camera:', error);
+                        alert("Terjadi kesalahan saat mengakses kamera");
+                        return;
                     });
             }
 
@@ -146,20 +155,11 @@
                 // Gunakan perpustakaan pemindaian kode QR (jsQR) untuk mendekode kode QR
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-                // Jika kode QR ditemukan, buka URL yang sesuai dan hentikan pemindaian
                 // Jika kode QR ditemukan, buka URL yang sesuai
                 if (code) {
                     if (code.data != null || code.data != "") {
                         stopScan();
-                        $('#myModal').modal('hide');
-                        if (isSafari()) {
-                            var a = window.document.createElement('a');
-                            a.href = code.data;
-                            a.target = '_blank';
-                            a.click();
-                        } else {
-                            window.open(code.data);
-                        }
+                        window.open(code.data);
                     }
                 }
 
