@@ -113,12 +113,13 @@
 
         $("#changeCamera").on("click", function () {
             stopScan();
-            setTimeout(startScan, 1000); // Delay 1 second
+            setTimeout(startScan, 2000); // Delay 1 second
         });
 
 
         function startScan() {
             if (isMobile) {
+                positionCamera = 1;
                 if (positionCamera === 1) {
                     positionCamera = 0;
                     selectedCameraMode = frontCamera;
