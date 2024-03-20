@@ -4,170 +4,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+    <title>Open QR Modal</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+        #videoWrapper {
+            border-radius: 15px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #videoWrapper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            z-index: 4;
+
+            --b: 5px; /* thickness of the border */
+            --c: white; /* color of the border */
+            --w: 20px; /* width of border */
+
+            border: var(--b) solid #0000; /* space for the border */
+            --_g: #0000 90deg,var(--c) 0;
+            --_p: var(--w) var(--w) border-box no-repeat;
+            background: conic-gradient(from 90deg at top var(--b) left var(--b),var(--_g)) 0 0 / var(--_p), conic-gradient(from 180deg at top var(--b) right var(--b),var(--_g)) 100% 0 / var(--_p), conic-gradient(from 0deg at bottom var(--b) left var(--b),var(--_g)) 0 100% / var(--_p), conic-gradient(from -90deg at bottom var(--b) right var(--b),var(--_g)) 100% 100% / var(--_p);
         }
 
         #qrVideo {
-            width: 70%;
-            /* Adjust the width as needed */
-            max-width: 100%;
-            order: 1;
-            /* Move the video to the top */
-        }
-
-        #startScan,
-        #stopScan,
-        #changeCamera {
-            order: 2;
-            /* Move the buttons to the bottom */
-            margin-top: 10px;
-            /* Add space between the video and buttons */
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            z-index: 2;
+            position: relative;
         }
     </style>
 </head>
 
 <body>
-    <button id="startScan">Buka Kamera</button>
-    <button id="changeCamera" style="display: none;">Ubah Camera</button>
-    <button id="stopScan" style="display: none;">Tutup Camera</button>
-    <video id="qrVideo" width="50%" height="50%" autoplay playsinline></video>
-    <a id="linkScan" href="#" target="_blank" rel="noopener noreferrer" style="display: none;"></a>
+
+    <!-- Container to center the button -->
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <!-- Button to Open QR Modal -->
+        <button type="button" class="btn btn-warning" id="scanQrBtn" data-dismiss="modal"><i class="fa fa-qrcode"></i> Scan Kode QR </button>
+        <button type="button" id="showModalQrBtn" data-toggle="modal" data-dismiss="modal" data-target="#qrModal" style="display:none"></button>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div id="videoWrapper">
+                            <video id="qrVideo" autoplay playsinline></video>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button id="changeCamera" class="btn btn-success" style="display: none;">Ubah Camera</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="jsQR.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {           
+        $(document).ready(function () {
 
-            const cameraModeSelect = document.getElementById('changeCamera');
-            const startScanButton = document.getElementById('startScan');
-            const stopScanButton = document.getElementById('stopScan');
-            const qrVideo = document.getElementById('qrVideo');
-            const linkScan = document.getElementById('linkScan');
+            $('#qrModal').on('hidden.bs.modal', function (e) {
+                stopScan();
 
-            let videoStream;
-            let continueScanning = false;
-
-            let positionCamera = 1; //0 = depan, 1 = belakang
-            let frontCamera = "user"; //kamera depan
-            let rearCamera = "environment"; // kamera belakang
-            let selectedCameraMode = frontCamera; //default kamera depan
-
-            cameraModeSelect.addEventListener('click', startScan);
-            startScanButton.addEventListener('click', startScan);
-            stopScanButton.addEventListener('click', stopScan);
-
-            const isMobile = isMobileDevice();
-
-            function startScan() {
-                if (isMobile) {
-                    if (positionCamera === 1) {
-                        positionCamera = 0;
-                        selectedCameraMode = frontCamera;
-                        cameraModeSelect.innerHTML = "Kamera Belakang";
-                    } else {
-                        positionCamera = 1;
-                        selectedCameraMode = rearCamera;
-                        cameraModeSelect.innerHTML = "Kamera Depan";
-                    }
-
-                }
-
-                // Minta akses ke kamera pengguna
-                navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: selectedCameraMode
-                        }
-                    })
-                    .then((stream) => {
-                        // Simpan stream video dan atur sebagai sumber untuk elemen video
-                        videoStream = stream;
-                        qrVideo.srcObject = stream;
-
-                        // Ketika metadata video dimuat, putar video dan mulai pemindaian
-                        qrVideo.addEventListener('loadedmetadata', function () {
-                            stopScanButton.style.display = "";
-                            startScanButton.style.display = "none";
-                            if (isMobile) {
-                                cameraModeSelect.style.display = "";
-                            } else {
-                                cameraModeSelect.style.display = "none";
-                            }
-
-                            qrVideo.play();
-                            continueScanning = true;
-                            scanQRCode();
-                        });
-                    })
-                    .catch((error) => {
-                        alert("Terjadi kesalahan saat mengakses kamera");
-                        return;
-                    });
-            }
-
-            function stopScan() {
-                if (videoStream) {
-                    cameraModeSelect.style.display = "none";
-                    stopScanButton.style.display = "none";
-                    startScanButton.style.display = "";
-
-                    // Dapatkan semua trek video dan hentikan masing-masing
-                    const tracks = videoStream.getTracks();
-                    tracks.forEach(track => track.stop());
-                    videoStream = null;
-
-                    // Hentikan stream video pada elemen video
-                    qrVideo.srcObject = null;
-
-                    // Setel flag untuk menghentikan pemindaian
-                    continueScanning = false;
-                }
-            }
-
-            function scanQRCode() {
-                if (!continueScanning) {
-                    return;
-                }
-
-                // Buat elemen canvas untuk menggambar bingkai video
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = qrVideo.videoWidth;
-                canvas.height = qrVideo.videoHeight;
-
-                // Gambar bingkai video di atas canvas
-                context.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-                // Gunakan perpustakaan pemindaian kode QR (jsQR) untuk mendekode kode QR
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                // Jika kode QR ditemukan, buka URL yang sesuai
-                if (code) {
-                    if (code.data != null || code.data != "") {
-                        stopScan();
-                        linkScan.href = "https://jqueryui.com/button/"
-                        linkScan.click();
-                    }
-                }
-
-                // Lanjutkan pemindaian jika flag diatur
-                if (continueScanning) {
-                    requestAnimationFrame(scanQRCode);
-                }
-            }
-
-            function isMobileDevice() {
-                const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-                return regex.test(navigator.userAgent);
-            }
+            });    
         });
+
+        const cameraModeSelect = document.getElementById('changeCamera');
+        const qrVideo = document.getElementById('qrVideo');
+
+        let videoStream;
+        let continueScanning = false;
+
+        let positionCamera = 1; //0 = depan, 1 = belakang
+        let frontCamera = "user"; //kamera depan
+        let rearCamera = "environment"; // kamera belakang
+        let selectedCameraMode = frontCamera;//default kamera depan
+
+        const isMobile = isMobileDevice();
+
+        $("#scanQrBtn").on("click", function () {
+            $("#showModalQrBtn").click();
+            startScan();
+        });
+
+        $("#changeCamera").on("click", function () {
+            stopScan();
+            setTimeout(startScan, 1000); // Delay 1 second
+        });
+
+
+        function startScan() {
+            if (isMobile) {
+                if (positionCamera === 1) {
+                    positionCamera = 0;
+                    selectedCameraMode = frontCamera;
+                    cameraModeSelect.innerHTML = "Kamera Belakang";
+                } else {
+                    positionCamera = 1;
+                    selectedCameraMode = rearCamera;
+                    cameraModeSelect.innerHTML = "Kamera Depan";
+                }
+
+            }
+
+            // Minta akses ke kamera pengguna
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: selectedCameraMode
+                }
+            })
+            .then((stream) => {
+                // Simpan stream video dan atur sebagai sumber untuk elemen video
+                videoStream = stream;
+                qrVideo.srcObject = stream;
+
+                // Ketika metadata video dimuat, putar video dan mulai pemindaian
+                qrVideo.addEventListener('loadedmetadata', function () {
+                    if (isMobile) {
+                        cameraModeSelect.style.display = "";
+                    } else {
+                        cameraModeSelect.style.display = "none";
+                    }
+
+                    qrVideo.play();
+                    continueScanning = true;
+                    scanQRCode();
+                });
+            })
+            .catch((error) => {
+                alert("Terjadi kesalahan saat mengakses kamera");
+                return;
+            });
+        }
+
+        function stopScan() {
+            if (videoStream) {
+                cameraModeSelect.style.display = "none";
+
+                // Dapatkan semua trek video dan hentikan masing-masing
+                const tracks = videoStream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoStream = null;
+
+                // Hentikan stream video pada elemen video
+                qrVideo.srcObject = null;
+
+                // Setel flag untuk menghentikan pemindaian
+                continueScanning = false;
+            }
+        }
+
+        function scanQRCode() {
+            if (!continueScanning) {
+                return;
+            }
+
+            // Buat elemen canvas untuk menggambar bingkai video
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = qrVideo.videoWidth;
+            canvas.height = qrVideo.videoHeight;
+
+            // Gambar bingkai video di atas canvas
+            context.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Gunakan perpustakaan pemindaian kode QR (jsQR) untuk mendekode kode QR
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            // Jika kode QR ditemukan, buka URL yang sesuai
+            if (code) {
+                if (code.data != null || code.data != "") {
+                    const url = code.data.toLowerCase();
+                    const patterns = /manage\/(PenukaranEditUangDicabut|PenukaranEditUangRusak|PenukaranEditKasKeliling|PenukaranEditUangBersambung)/i;
+
+                    if (patterns.test(url.toLowerCase())) {
+                        stopScan();
+                        $('#myModal').modal('hide');
+                        window.open(code.data);
+                    } else {
+                        alert("Barcode tidak valid");
+                    }
+                }
+            }
+
+            // Lanjutkan pemindaian jika flag diatur
+            if (continueScanning) {
+                requestAnimationFrame(scanQRCode);
+            }
+        }
+
+        function isMobileDevice() {
+            const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+            return regex.test(navigator.userAgent);
+        }
     </script>
 </body>
 
