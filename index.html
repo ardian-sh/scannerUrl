@@ -26,14 +26,18 @@
             height: 60%;
             z-index: 4;
 
-            --b: 5px; /* thickness of the border */
-            --c: white; /* color of the border */
-            --w: 20px; /* width of border */
+            --b: 5px;
+            /* thickness of the border */
+            --c: white;
+            /* color of the border */
+            --w: 20px;
+            /* width of border */
 
-            border: var(--b) solid #0000; /* space for the border */
-            --_g: #0000 90deg,var(--c) 0;
+            border: var(--b) solid #0000;
+            /* space for the border */
+            --_g: #0000 90deg, var(--c) 0;
             --_p: var(--w) var(--w) border-box no-repeat;
-            background: conic-gradient(from 90deg at top var(--b) left var(--b),var(--_g)) 0 0 / var(--_p), conic-gradient(from 180deg at top var(--b) right var(--b),var(--_g)) 100% 0 / var(--_p), conic-gradient(from 0deg at bottom var(--b) left var(--b),var(--_g)) 0 100% / var(--_p), conic-gradient(from -90deg at bottom var(--b) right var(--b),var(--_g)) 100% 100% / var(--_p);
+            background: conic-gradient(from 90deg at top var(--b) left var(--b), var(--_g)) 0 0 / var(--_p), conic-gradient(from 180deg at top var(--b) right var(--b), var(--_g)) 100% 0 / var(--_p), conic-gradient(from 0deg at bottom var(--b) left var(--b), var(--_g)) 0 100% / var(--_p), conic-gradient(from -90deg at bottom var(--b) right var(--b), var(--_g)) 100% 100% / var(--_p);
         }
 
         #qrVideo {
@@ -51,8 +55,10 @@
     <!-- Container to center the button -->
     <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
         <!-- Button to Open QR Modal -->
-        <button type="button" class="btn btn-warning" id="scanQrBtn" data-dismiss="modal"><i class="fa fa-qrcode"></i> Scan Kode QR </button>
-        <button type="button" id="showModalQrBtn" data-toggle="modal" data-dismiss="modal" data-target="#qrModal" style="display:none"></button>
+        <button type="button" class="btn btn-warning" id="scanQrBtn" data-dismiss="modal"><i class="fa fa-qrcode"></i>
+            Scan Kode QR </button>
+        <button type="button" id="showModalQrBtn" data-toggle="modal" data-dismiss="modal" data-target="#qrModal"
+            style="display:none"></button>
     </div>
 
     <!-- QR Modal -->
@@ -90,7 +96,7 @@
             $('#qrModal').on('hidden.bs.modal', function (e) {
                 stopScan();
 
-            });    
+            });
         });
 
         const cameraModeSelect = document.getElementById('changeCamera');
@@ -102,24 +108,28 @@
         let positionCamera = 1; //0 = depan, 1 = belakang
         let frontCamera = "user"; //kamera depan
         let rearCamera = "environment"; // kamera belakang
-        let selectedCameraMode = frontCamera;//default kamera depan
+        let selectedCameraMode = frontCamera; //default kamera depan
 
         const isMobile = isMobileDevice();
 
         $("#scanQrBtn").on("click", function () {
+            if (isMobile) {
+                positionCamera = 0;
+                selectedCameraMode = rearCamera;
+            }
+            
             $("#showModalQrBtn").click();
             startScan();
         });
 
         $("#changeCamera").on("click", function () {
             stopScan();
-            setTimeout(startScan, 2000); // Delay 1 second
+            setTimeout(startScan, 1000); // Delay 1 second
         });
 
 
         function startScan() {
             if (isMobile) {
-                positionCamera = 1;
                 if (positionCamera === 1) {
                     positionCamera = 0;
                     selectedCameraMode = frontCamera;
@@ -134,32 +144,32 @@
 
             // Minta akses ke kamera pengguna
             navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: selectedCameraMode
-                }
-            })
-            .then((stream) => {
-                // Simpan stream video dan atur sebagai sumber untuk elemen video
-                videoStream = stream;
-                qrVideo.srcObject = stream;
-
-                // Ketika metadata video dimuat, putar video dan mulai pemindaian
-                qrVideo.addEventListener('loadedmetadata', function () {
-                    if (isMobile) {
-                        cameraModeSelect.style.display = "";
-                    } else {
-                        cameraModeSelect.style.display = "none";
+                    video: {
+                        facingMode: selectedCameraMode
                     }
+                })
+                .then((stream) => {
+                    // Simpan stream video dan atur sebagai sumber untuk elemen video
+                    videoStream = stream;
+                    qrVideo.srcObject = stream;
 
-                    qrVideo.play();
-                    continueScanning = true;
-                    scanQRCode();
+                    // Ketika metadata video dimuat, putar video dan mulai pemindaian
+                    qrVideo.addEventListener('loadedmetadata', function () {
+                        if (isMobile) {
+                            cameraModeSelect.style.display = "";
+                        } else {
+                            cameraModeSelect.style.display = "none";
+                        }
+
+                        qrVideo.play();
+                        continueScanning = true;
+                        scanQRCode();
+                    });
+                })
+                .catch((error) => {
+                    alert("Terjadi kesalahan saat mengakses kamera");
+                    return;
                 });
-            })
-            .catch((error) => {
-                alert("Terjadi kesalahan saat mengakses kamera");
-                return;
-            });
         }
 
         function stopScan() {
@@ -201,7 +211,8 @@
             if (code) {
                 if (code.data != null || code.data != "") {
                     const url = code.data.toLowerCase();
-                    const patterns = /manage\/(PenukaranEditUangDicabut|PenukaranEditUangRusak|PenukaranEditKasKeliling|PenukaranEditUangBersambung)/i;
+                    const patterns =
+                        /manage\/(PenukaranEditUangDicabut|PenukaranEditUangRusak|PenukaranEditKasKeliling|PenukaranEditUangBersambung)/i;
 
                     if (patterns.test(url.toLowerCase())) {
                         stopScan();
