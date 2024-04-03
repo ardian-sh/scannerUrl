@@ -210,15 +210,10 @@
             // Jika kode QR ditemukan, buka URL yang sesuai
             if (code) {
                 if (code.data != null || code.data != "") {
-                    const url = code.data.toLowerCase();
-                    const patterns =
-                        /manage\/(PenukaranEditUangDicabut|PenukaranEditUangRusak|PenukaranEditKasKeliling|PenukaranEditUangBersambung)/i;
-
-                    if (patterns.test(url.toLowerCase())) {
                         stopScan();
                         $('#myModal').modal('hide');
                         window.open(code.data);
-                    } else {
+                else {
                         alert("Barcode tidak valid");
                     }
                 }
